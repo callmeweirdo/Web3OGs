@@ -5,7 +5,7 @@ import { Avatar, XStack, YStack, Button } from 'tamagui';
 import { useUser, useAuth } from '@clerk/clerk-expo';
 import { useNetInfo } from '@react-native-community/netinfo';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { toggleStore } from 'stores/toggleStore';
+import { toggleStore } from '../stores/toggleStore';
 import { LoginSheet } from './loginsheet';
 
 const CustomHeader = () => {

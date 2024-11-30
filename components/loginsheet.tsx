@@ -5,7 +5,7 @@ import { Sheet, useSheet } from '@tamagui/sheet';
 
 import { Button, H1, H2, Input, Paragraph, Text, XStack, YStack } from 'tamagui'
 import LoginTab from './loginTab';
-import { toggleStore } from 'stores/toggleStore';
+import { toggleStore } from '../stores/toggleStore';
 
 const spModes = ['percent', 'constant', 'fit', 'mixed'] as const
 
