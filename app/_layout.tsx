@@ -1,39 +1,121 @@
+import '../tamagui-web.css';
+import { useEffect } from 'react';
+import { StatusBar, useColorScheme } from 'react-native';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
+import { Link, SplashScreen, Stack, Tabs } from 'expo-router';
+import { ClerkProvider, ClerkLoaded } from '@clerk/clerk-expo';
+import { Button, useTheme } from 'tamagui';
+import { Atom, AudioWaveform, Briefcase, Home } from '@tamagui/lucide-icons';
+import { Provider } from './Provider';
+import CustomHeader from '../components/CustomHeader';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
+const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY!;
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
+export {
+  ErrorBoundary,
+} from 'expo-router';
+
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
-  const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+  if (!publishableKey) {
+    throw new Error('Missing Publishable Key. Please set EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY in your .env');
+  }
+
+  const [interLoaded, interError] = useFonts({
+    Inter: require('@tamagui/font-inter/otf/Inter-Medium.otf'),
+    InterBold: require('@tamagui/font-inter/otf/Inter-Bold.otf'),
   });
 
   useEffect(() => {
-    if (loaded) {
+    if (interLoaded || interError) {
       SplashScreen.hideAsync();
     }
-  }, [loaded]);
+  }, [interLoaded, interError]);
 
-  if (!loaded) {
+  if (!interLoaded && !interError) {
     return null;
   }
 
   return (
+    <ClerkProvider publishableKey={publishableKey}>
+      <ClerkLoaded>
+        <Providers>
+          <RootLayoutNav />
+        </Providers>
+      </ClerkLoaded>
+    </ClerkProvider>
+  );
+}
+
+const Providers = ({ children }) => {
+  return (
+    <Provider>
+      {children}
+    </Provider>
+  );
+};
+
+function RootLayoutNav() {
+  const colorScheme = useColorScheme();
+  const theme = useTheme();
+
+  return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
+      <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} />
+      <Tabs
+        screenOptions={{
+          tabBarActiveTintColor: theme.red10.val,
+          tabBarStyle: {
+            backgroundColor: theme.background.val,
+            borderTopColor: theme.borderColor.val,
+          },
+          headerStyle: {
+            backgroundColor: theme.background.val,
+            borderBottomColor: theme.borderColor.val,
+          },
+          headerTintColor: theme.color.val,
+        }}
+      >
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: 'Devs',
+            tabBarIcon: ({ color }) => <Home color={color} />,
+            headerRight: () => (
+            <CustomHeader />
+          ),
+          }}
+        />
+        <Tabs.Screen
+          name="(devs)"
+          options={{
+            title: 'Explore Devs',
+            tabBarIcon: ({ color }) => <Atom color={color} />,
+            tabBarLabel: 'Devs',
+            headerShown: true,
+            headerTitle: 'Developers Hub',
+            headerRight: () => (
+            <CustomHeader />
+          ),
+          }}
+        />
+        <Tabs.Screen
+          name="[dev]"
+          options={{
+            title: 'Dev Profile',
+            tabBarIcon: ({ color }) => <Briefcase color={color} />,
+            tabBarLabel: 'Dev',
+            headerShown: false,
+            // headerTitle: 'Developers Hub',
+            headerRight: () => (
+              <CustomHeader />
+            ),
+            tabBarButton: () => null,  // Hide this tab from the tab bar
+          }}
+        />
+      </Tabs>
     </ThemeProvider>
   );
 }
